@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Mic, Play, BarChart3, Globe, Zap, Infinity, Rocket } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { useAuth } from '../hooks/useAuth';
+import Logo from './Logo';
 
 interface HeroSectionProps {
   onDashboardClick?: () => void;
@@ -35,9 +36,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onDashboardClick }) => {
         <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20viewBox%3D%220%200%2060%2060%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cg%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%3E%3Cg%20fill%3D%22%236366f1%22%20fill-opacity%3D%220.05%22%3E%3Ccircle%20cx%3D%2230%22%20cy%3D%2230%22%20r%3D%221%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50"></div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Hackathon Badge */}
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium mb-8 animate-pulse">
-            🏆 Built with Bolt for Hackathon 2025
+          {/* Logo and Hackathon Badge */}
+          <div className="flex flex-col items-center justify-center mb-8">
+            <Logo size={60} className="mb-4" />
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-medium animate-pulse">
+              🏆 Built with Bolt for Hackathon 2025
+            </div>
           </div>
 
           {/* Main Headline */}
@@ -65,7 +69,11 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onDashboardClick }) => {
                 onClick={handleStartBuildingClick}
                 className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 shadow-lg shadow-indigo-500/25 flex items-center space-x-3 hover:scale-105"
               >
-                <Rocket className="w-5 h-5" />
+                {user ? (
+                  <BarChart3 className="w-5 h-5" />
+                ) : (
+                  <Rocket className="w-5 h-5" />
+                )}
                 <span>{user ? 'Go to Dashboard' : 'Start Building'}</span>
               </button>
             )}

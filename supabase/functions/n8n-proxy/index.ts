@@ -30,7 +30,14 @@ serve(async (req) => {
     // Get user from Authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      throw new Error('No authorization header')
+      console.error('No authorization header provided')
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
@@ -38,27 +45,67 @@ serve(async (req) => {
     )
 
     if (authError || !user) {
-      throw new Error('Invalid authorization')
+      console.error('Invalid authorization:', authError?.message)
+      return new Response(
+        JSON.stringify({ error: 'Invalid authorization' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      )
     }
 
     const url = new URL(req.url)
-    const path = url.pathname.replace('/functions/v1/n8n-proxy', '')
+    console.log('Full URL:', req.url)
+    console.log('Pathname:', url.pathname)
+    
+    // More flexible path parsing - handle both local and production URLs
+    let path = url.pathname
+    
+    // Remove the functions prefix if present
+    if (path.startsWith('/functions/v1/n8n-proxy')) {
+      path = path.replace('/functions/v1/n8n-proxy', '')
+    } else if (path.startsWith('/n8n-proxy')) {
+      path = path.replace('/n8n-proxy', '')
+    }
+    
+    // Ensure path starts with /
+    if (path && !path.startsWith('/')) {
+      path = '/' + path
+    }
+    
+    console.log('Parsed path:', path)
+    console.log('Method:', req.method)
     
     // Route handling
     if (req.method === 'POST' && path === '/test-connection') {
+      console.log('Handling test-connection')
       return await handleTestConnection(req, user.id, supabaseClient)
     } else if (req.method === 'POST' && path === '/save-connection') {
+      console.log('Handling save-connection')
       return await handleSaveConnection(req, user.id, supabaseClient)
     } else if (req.method === 'GET' && path === '/connections') {
+      console.log('Handling get connections')
       return await handleGetConnections(user.id, supabaseClient)
     } else if (req.method === 'DELETE' && path.startsWith('/connections/')) {
+      console.log('Handling delete connection')
       const connectionId = path.split('/')[2]
       return await handleDeleteConnection(connectionId, user.id, supabaseClient)
     } else if (path.startsWith('/proxy/')) {
+      console.log('Handling n8n proxy')
       return await handleN8nProxy(req, user.id, supabaseClient, path.replace('/proxy', ''))
     }
 
-    return new Response('Not found', { status: 404, headers: corsHeaders })
+    console.log('No matching route found for:', path)
+    return new Response(
+      JSON.stringify({ 
+        error: 'Not found',
+        path: path,
+        method: req.method,
+        fullUrl: req.url
+      }), 
+      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
 
   } catch (error) {
     console.error('Error:', error)

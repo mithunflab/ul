@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Rocket, BookOpen } from 'lucide-react';
 import AuthModal from './AuthModal';
 import { useAuth } from '../hooks/useAuth';
+import Logo from './Logo';
 
 interface CTASectionProps {
   onDashboardClick?: () => void;
@@ -23,6 +24,8 @@ const CTASection: React.FC<CTASectionProps> = ({ onDashboardClick }) => {
     <>
       <section className="py-24 bg-gradient-to-br from-slate-900 via-indigo-900/20 to-slate-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <Logo size={50} className="mx-auto mb-6" />
+          
           <h2 className="text-4xl md:text-6xl font-bold text-slate-50 mb-6">
             Ready to Automate with Your Voice?
           </h2>

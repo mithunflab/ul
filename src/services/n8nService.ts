@@ -116,6 +116,11 @@ class N8nService {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const url = `${supabaseUrl}/functions/v1/n8n-proxy/test-connection`;
       
+      // Debug logging
+      console.log('VITE_SUPABASE_URL:', supabaseUrl);
+      console.log('Constructed URL:', url);
+      console.log('Headers:', headers);
+      
       const response = await fetch(url, {
         method: 'POST',
         headers,
@@ -187,17 +192,26 @@ class N8nService {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const url = `${supabaseUrl}/functions/v1/n8n-proxy/connections`;
       
+      // Debug logging
+      console.log('Getting connections from:', url);
+      console.log('Headers:', headers);
+      
       const response = await fetch(url, {
         method: 'GET',
         headers,
       });
 
+      console.log('Get connections response status:', response.status);
+      console.log('Get connections response ok:', response.ok);
+
       if (!response.ok) {
         const errorText = await response.text();
+        console.log('Get connections error text:', errorText);
         throw new Error(`Get connections failed: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const result = await response.json();
+      console.log('Get connections result:', result);
       return result;
 
     } catch (error) {
