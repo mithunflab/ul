@@ -252,9 +252,9 @@ function App() {
               {user ? (
                 <BarChart3 className="w-5 h-5" />
               ) : (
-                <Mic className="w-5 h-5" />
+                <BarChart3 className="w-5 h-5" />
               )}
-              <span>{user ? 'Go to Dashboard' : 'Start Speaking'}</span>
+              <span>{user ? 'Go to Dashboard' : 'Start Building'}</span>
             </button>
             <button className="border border-slate-600 hover:border-slate-500 text-slate-300 hover:text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 flex items-center space-x-2">
               <Play className="w-5 h-5" />
