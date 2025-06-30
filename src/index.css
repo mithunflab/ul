@@ -13,3 +13,62 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+@layer utilities {
+  /* Add custom animations for Hero section */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes pulseGlow {
+    0%, 100% {
+      filter: brightness(1);
+    }
+    50% {
+      filter: brightness(1.2);
+    }
+  }
+}
+
+/* Improve font rendering */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+/* Improved focus states for accessibility */
+
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
+}
+
+/* Ensure buttons don't lose proportions when text wraps */
+button {
+  line-height: 1.2;
+}
+
+/* Add selection styling */
+::selection {
+  background-color: rgba(99, 102, 241, 0.3);
+  color: white;
+}

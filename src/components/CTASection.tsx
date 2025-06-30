@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Rocket, BookOpen } from 'lucide-react';
-import AuthModal from './AuthModal';
+import {AuthModal} from './AuthModal';
 import { useAuth } from '../hooks/useAuth';
 import Logo from './Logo';
 
@@ -71,7 +71,7 @@ const CTASection: React.FC<CTASectionProps> = ({ onDashboardClick }) => {
         <AuthModal 
           isOpen={isAuthModalOpen} 
           onClose={() => setIsAuthModalOpen(false)} 
-          initialMode="signup"
+          
         />
       )}
     </>

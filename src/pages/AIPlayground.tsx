@@ -958,15 +958,7 @@ export const AIPlayground: React.FC<AIPlaygroundProps> = ({ onBack }) => {
                 </button>
             </div>
 
-              <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-lg p-3">
-                <div className="flex items-center space-x-2 mb-1">
-                  <Sparkles className="w-4 h-4 text-indigo-400" />
-                  <span className="text-sm font-medium text-indigo-300">AI Analysis Ready</span>
-                </div>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Select any workflow to analyze with WorkFlow AI capabilities including web search and code execution
-                </p>
-              </div>
+              
             </div>
 
             {/* Workflows List */}

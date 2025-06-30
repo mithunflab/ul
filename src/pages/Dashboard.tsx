@@ -68,8 +68,8 @@ export const Dashboard: React.FC = () => {
 
   // Filter workflows based on search and filter type
   const filteredWorkflows = workflows.filter(workflow => {
-    const matchesSearch = workflow.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         workflow.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesSearch = workflow.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         workflow.tags?.some(tag => typeof tag === 'string' && tag.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesFilter = filterType === 'all' || 
                          (filterType === 'active' && workflow.active) ||

@@ -35,14 +35,19 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({ workflows, onAction,
     return <Pause className="w-4 h-4" />;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      return 'Invalid date';
+    }
   };
 
   const getNodeCount = (workflow: N8nWorkflow) => {
@@ -71,7 +76,7 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({ workflows, onAction,
             {/* Workflow Name */}
             <div className="col-span-4 min-w-0">
               <h3 className="text-slate-50 font-medium truncate group-hover:text-indigo-300 transition-colors duration-200">
-                {workflow.name}
+                {workflow.name || 'Untitled Workflow'}
               </h3>
               <p className="text-sm text-slate-400 truncate">ID: {workflow.id}</p>
             </div>
@@ -105,7 +110,7 @@ export const WorkflowList: React.FC<WorkflowListProps> = ({ workflows, onAction,
                         className="inline-flex items-center space-x-1 px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded-lg"
                       >
                         <Tag className="w-3 h-3" />
-                        <span>{tag}</span>
+                        <span>{typeof tag === 'string' ? tag : 'Tag'}</span>
                       </span>
                     ))}
                     {workflow.tags.length > 2 && (
