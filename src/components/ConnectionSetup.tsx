@@ -99,9 +99,7 @@ export const ConnectionSetup: React.FC<ConnectionSetupProps> = ({ onSkip, onSucc
         console.error('Failed to load connections:', err);
       } finally {
         // Add minimum loading time for better UX
-        setTimeout(() => {
           setInitialLoading(false);
-        }, 800);
       }
     };
 

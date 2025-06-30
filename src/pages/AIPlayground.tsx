@@ -30,7 +30,7 @@ import {
   
   Volume2,
   VolumeX,
-  AudioLines,
+
   Square,
   
 } from 'lucide-react';
@@ -76,7 +76,7 @@ interface ChatSession {
 
 interface AIActivity {
   id: string;
-  type: 'web_search' | 'code_execution' | 'workflow_generation' | 'analysis';
+  type: 'web_search' | 'workflow_generation' | 'analysis';
   status: 'running' | 'completed' | 'error';
   title: string;
   description?: string;
@@ -88,7 +88,7 @@ interface AIActivity {
 
 
 export const AIPlayground: React.FC<AIPlaygroundProps> = ({ onBack }) => {
-  const { workflows, activeConnection, activateWorkflow, deactivateWorkflow, createWorkflow, loadWorkflows } = useN8n();
+  const { workflows, activeConnection, activateWorkflow, deactivateWorkflow, createWorkflow, loadWorkflows, isLoading: isLoadingWorkflows } = useN8n();
   
   // Voice functionality
   const voice = useVoice({
@@ -155,6 +155,8 @@ export const AIPlayground: React.FC<AIPlaygroundProps> = ({ onBack }) => {
   useEffect(() => {
     testAIConnection();
   }, []);
+
+
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -963,7 +965,16 @@ export const AIPlayground: React.FC<AIPlaygroundProps> = ({ onBack }) => {
 
             {/* Workflows List */}
             <div className="flex-1 overflow-y-auto scrollbar-hide">
-              {workflows.length === 0 ? (
+              {isLoadingWorkflows ? (
+                <div className="p-4 space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="bg-slate-800/40 rounded-xl p-4 animate-pulse">
+                      <div className="h-4 bg-slate-700 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-slate-700 rounded w-1/2"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : workflows.length === 0 ? (
                 <div className="p-6 text-center">
                   <div className="w-16 h-16 bg-slate-700/50 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <Database className="w-8 h-8 text-slate-500" />
