@@ -101,8 +101,12 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
   const [selectedPreset, setSelectedPreset] = useState('');
 
   useEffect(() => {
+  if (user?.id) {
     loadMCPServers();
-  }, []);
+  } else {
+    setLoading(true); // Keep loading until user is available
+  }
+}, [user?.id]); // Add user.id as dependency
 
   useEffect(() => {
     // Initialize JSON input when form opens
@@ -165,41 +169,41 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
       Check console for full details.`);
     } catch (error) {
       console.error('Debug error:', error);
-      alert(`Debug failed: ${error.message}`);
+      alert(`Debug failed: ${error}`);
     }
   };
 
   const loadMCPServers = async () => {
-    try {
-      console.log('Loading MCP servers for user:', user?.id);
-      
-      if (!user?.id) {
-        console.error('No user ID available');
-        setServers([]);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('mcp_servers')
-        .select('*')
-        .eq('user_id', user.id);
-
-      console.log('MCP servers query result:', { data, error });
-
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-      
-      console.log('Loaded MCP servers:', data);
-      setServers(data || []);
-    } catch (error) {
-      console.error('Error loading MCP servers:', error);
-      alert('Failed to load MCP servers. Check console for details.');
-    } finally {
-      setLoading(false);
+  try {
+    console.log('Loading MCP servers for user:', user?.id);
+    
+    if (!user?.id) {
+      console.error('No user ID available');
+      setServers([]);
+      return;
     }
-  };
+
+    const { data, error } = await supabase
+      .from('mcp_servers')
+      .select('*')
+      .eq('user_id', user.id);
+
+    console.log('MCP servers query result:', { data, error });
+
+    if (error) {
+      console.error('Supabase error:', error);
+      throw error;
+    }
+    
+    console.log('Loaded MCP servers:', data);
+    setServers(data || []);
+  } catch (error) {
+    console.error('Error loading MCP servers:', error);
+    alert('Failed to load MCP servers. Check console for details.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const validateMCPServerJSON = (jsonString: string): { valid: boolean; data?: any; error?: string } => {
     try {
@@ -242,46 +246,46 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
     }
   };
 
-  const handleSaveServer = async () => {
-    try {
-      const validation = validateMCPServerJSON(jsonInput);
-      
-      if (!validation.valid) {
-        setJsonError(validation.error || 'Invalid JSON');
-        return;
-      }
-
-      const serverData = {
-        name: validation.data.name,
-        url: validation.data.url,
-        authorization_token: validation.data.authorization_token || null,
-        tool_configuration: validation.data.tool_configuration || { enabled: true, allowed_tools: [] },
-        user_id: user?.id,
-        status: 'disconnected'
-      };
-
-      if (editingServer?.id) {
-        const { error } = await supabase
-          .from('mcp_servers')
-          .update(serverData)
-          .eq('id', editingServer.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('mcp_servers')
-          .insert([serverData]);
-
-        if (error) throw error;
-      }
-
-      await loadMCPServers();
-      resetForm();
-    } catch (error) {
-      console.error('Error saving MCP server:', error);
-      setJsonError('Failed to save MCP server. Please try again.');
+ const handleSaveServer = async () => {
+  try {
+    const validation = validateMCPServerJSON(jsonInput);
+    
+    if (!validation.valid) {
+      setJsonError(validation.error || 'Invalid JSON');
+      return;
     }
-  };
+
+    const serverData = {
+      name: validation.data.name,
+      url: validation.data.url,
+      authorization_token: validation.data.authorization_token || null,
+      tool_configuration: validation.data.tool_configuration || { enabled: true, allowed_tools: [] },
+      user_id: user?.id,
+      status: 'disconnected'
+    };
+
+    if (editingServer?.id) {
+      const { error } = await supabase
+        .from('mcp_servers')
+        .update(serverData)
+        .eq('id', editingServer.id);
+
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from('mcp_servers')
+        .insert([serverData]);
+
+      if (error) throw error;
+    }
+
+    await loadMCPServers();
+    resetForm();
+  } catch (error) {
+    console.error('Error saving MCP server:', error);
+    setJsonError('Failed to save MCP server. Please try again.');
+  }
+};
 
   const handleDeleteServer = async (serverId: string) => {
     if (!confirm('Are you sure you want to delete this MCP server?')) return;

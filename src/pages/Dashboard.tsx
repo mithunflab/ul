@@ -22,10 +22,13 @@ import {
   Activity,
   Clock,
   Users,
+  Crown,
+  Rocket,
   Globe,
   Heart,
   ShieldCheck,
-  
+  Layers,
+  Command
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useN8n } from '../hooks/useN8n';
@@ -211,7 +214,7 @@ export const Dashboard: React.FC = () => {
                       {workflows.filter(w => w.active).length}
                     </p>
                     <div className="flex items-center space-x-2 text-emerald-400">
-                      <Activity className="w-8 h-8 text-emerald-400" />
+                      <Activity className="w-4 h-4" />
                       <span className="text-sm font-semibold">Running smoothly</span>
                     </div>
                   </div>
@@ -432,14 +435,17 @@ export const Dashboard: React.FC = () => {
             {/* Premium Results Header */}
             <div className="flex items-center justify-between bg-slate-800/30 backdrop-blur-sm border border-slate-700/30 rounded-xl p-6">
               <div className="flex items-center space-x-4">
-                <div className="w-3 h-3 bg-gradient-to-r from-indigo-400 to-amber-400 rounded-full animate-pulse flex-shrink-0"></div>
-                <p className="text-slate-300 font-semibold text-lg leading-none">
+                <div className="w-3 h-3 bg-gradient-to-r from-indigo-400 to-amber-400 rounded-full animate-pulse"></div>
+                <p className="text-slate-300 font-semibold text-lg">
                   Showing <span className="text-indigo-400">{filteredWorkflows.length}</span> of{" "}
                   <span className="text-amber-400">{workflows.length}</span> workflows
                 </p>
               </div>
               
-              
+              <div className="flex items-center space-x-3 text-slate-400">
+                <BarChart3 className="w-5 h-5" />
+                <span className="text-sm font-medium">Enterprise View</span>
+              </div>
             </div>
 
             {/* Premium Workflow Display */}
@@ -503,9 +509,10 @@ export const Dashboard: React.FC = () => {
     </>
   );
 
-  return (
+  // Dashboard-specific background wrapper component
+  const DashboardWrapper = ({ children }: { children: React.ReactNode }) => (
     <div className="min-h-screen bg-slate-900 text-slate-50 font-['Inter',sans-serif] relative overflow-hidden">
-      {/* Premium Background Effects */}
+      {/* Premium Background Effects - Only for Dashboard */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-slate-900 to-amber-500/5"></div>
       <div 
         className="absolute inset-0 opacity-20"
@@ -516,7 +523,37 @@ export const Dashboard: React.FC = () => {
       <div className="absolute top-20 left-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-80 h-80 bg-amber-500/8 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-full blur-3xl animate-pulse" style={{animationDelay: '2s'}}></div>
+      {children}
+    </div>
+  );
 
+  // Clean wrapper for other views
+  const CleanWrapper = ({ children }: { children: React.ReactNode }) => (
+    <div className="min-h-screen bg-slate-900 text-slate-50">
+      {children}
+    </div>
+  );
+
+  // Render different views with appropriate wrappers
+  if (currentView === 'playground') {
+    return (
+      <CleanWrapper>
+        <AIPlayground onBack={() => setCurrentView('dashboard')} />
+      </CleanWrapper>
+    );
+  }
+
+  if (currentView === 'mcp-servers') {
+    return (
+      <CleanWrapper>
+        <MCPServerManager onBack={() => setCurrentView('dashboard')} />
+      </CleanWrapper>
+    );
+  }
+
+  return (
+    <>
+    <DashboardWrapper>
       {/* Premium Dashboard Header */}
       <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/30 shadow-2xl shadow-slate-900/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -576,7 +613,7 @@ export const Dashboard: React.FC = () => {
               </button>
             </div>
 
-
+            
 
             {/* Premium User Menu */}
             <div className="flex items-center space-x-4">
@@ -650,6 +687,9 @@ export const Dashboard: React.FC = () => {
 
       {/* Render Content */}
       {renderMainContent()}
-    </div>
+      
+    </DashboardWrapper>
+    </>
+
   );
 };
