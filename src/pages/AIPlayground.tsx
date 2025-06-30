@@ -151,11 +151,7 @@ export const AIPlayground: React.FC<AIPlaygroundProps> = ({ onBack }) => {
     }
   }, [messages, currentSessionId]);
 
-  // Test AI service connection on mount
-  useEffect(() => {
-    testAIConnection();
-  }, []);
-
+  
 
 
   const scrollToBottom = () => {
