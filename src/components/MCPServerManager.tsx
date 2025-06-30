@@ -3,20 +3,19 @@ import {
   ArrowLeft,
   Plus,
   Server,
- 
   Trash2,
   Edit,
   Globe,
   Shield,
-  
   Loader2,
-  
   Eye,
   EyeOff,
- Wrench,
+  Wrench,
   RefreshCw,
   CheckCircle,
- 
+  FileText,
+  Copy,
+  AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
@@ -45,6 +44,48 @@ interface MCPServerManagerProps {
   onBack: () => void;
 }
 
+// MCP Server JSON Schema Template
+const MCP_SERVER_TEMPLATE = {
+  type: "url",
+  name: "Example MCP Server",
+  url: "https://your-mcp-server.com/sse",
+  authorization_token: "",
+  tool_configuration: {
+    enabled: true,
+    allowed_tools: []
+  }
+};
+
+// Preset Examples
+const MCP_PRESETS: Record<string, any> = {
+  basic: {
+    type: "url",
+    name: "Basic MCP Server",
+    url: "https://your-mcp-server.com/sse",
+    authorization_token: ""
+  },
+  supabase: {
+    type: "url",
+    name: "Supabase MCP Server",
+    url: "https://mcp-supabase.example.com/sse",
+    authorization_token: "sbp_your_access_token_here",
+    tool_configuration: {
+      enabled: true,
+      allowed_tools: ["query_database", "execute_function", "manage_auth"]
+    }
+  },
+  github: {
+    type: "url", 
+    name: "GitHub MCP Server",
+    url: "https://mcp-github.example.com/sse",
+    authorization_token: "ghp_your_github_token_here",
+    tool_configuration: {
+      enabled: true,
+      allowed_tools: ["create_repo", "manage_issues", "pull_requests"]
+    }
+  }
+};
+
 export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) => {
   const { user } = useAuth();
   const [servers, setServers] = useState<MCPServer[]>([]);
@@ -53,56 +94,168 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
   const [editingServer, setEditingServer] = useState<MCPServer | null>(null);
   const [testingServer, setTestingServer] = useState<string | null>(null);
   const [showToken, setShowToken] = useState<{ [key: string]: boolean }>({});
-
-  // Form state
-  const [formData, setFormData] = useState<MCPServer>({
-    name: '',
-    url: '',
-    authorization_token: '',
-    tool_configuration: {
-      enabled: true,
-      allowed_tools: []
-    }
-  });
+  
+  // JSON Form state
+  const [jsonInput, setJsonInput] = useState('');
+  const [jsonError, setJsonError] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState('');
 
   useEffect(() => {
     loadMCPServers();
   }, []);
 
-  const loadMCPServers = async () => {
+  useEffect(() => {
+    // Initialize JSON input when form opens
+    if (showAddForm) {
+      if (editingServer) {
+        const serverJson = {
+          type: "url",
+          name: editingServer.name,
+          url: editingServer.url,
+          authorization_token: editingServer.authorization_token || "",
+          ...(editingServer.tool_configuration && { tool_configuration: editingServer.tool_configuration })
+        };
+        setJsonInput(JSON.stringify(serverJson, null, 2));
+      } else {
+        setJsonInput(JSON.stringify(MCP_SERVER_TEMPLATE, null, 2));
+      }
+      setJsonError('');
+    }
+  }, [showAddForm, editingServer]);
+
+  const debugMCPServers = async () => {
     try {
-      const { data, error } = await supabase
+      console.log('=== MCP DEBUG START ===');
+      
+      // Check current user
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      console.log('Current user from auth:', currentUser?.id, userError);
+      console.log('User from hook:', user?.id);
+      console.log('User match:', currentUser?.id === user?.id);
+      
+      // Check auth session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('Current session:', session?.user?.id, sessionError);
+      
+      // Try query with specific user_id
+      const { data: userData, error: userDataError } = await supabase
         .from('mcp_servers')
         .select('*')
         .eq('user_id', user?.id);
+      console.log('User-specific MCP servers:', userData, userDataError);
+      
+      // Check if RLS is causing issues by checking count
+      const { count, error: countError } = await supabase
+        .from('mcp_servers')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user?.id);
+      console.log('Count of user MCP servers:', count, countError);
+      
+      console.log('=== MCP DEBUG END ===');
+      
+      // Show results in alert too
+      alert(`Debug results:
+      - User ID: ${user?.id}
+      - Auth User ID: ${currentUser?.id}
+      - Match: ${currentUser?.id === user?.id}
+      - Servers found: ${userData?.length || 0}
+      - Count: ${count}
+      - Error: ${userDataError?.message || 'None'}
+      
+      Check console for full details.`);
+    } catch (error) {
+      console.error('Debug error:', error);
+      alert(`Debug failed: ${error.message}`);
+    }
+  };
 
-      if (error) throw error;
+  const loadMCPServers = async () => {
+    try {
+      console.log('Loading MCP servers for user:', user?.id);
+      
+      if (!user?.id) {
+        console.error('No user ID available');
+        setServers([]);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('mcp_servers')
+        .select('*')
+        .eq('user_id', user.id);
+
+      console.log('MCP servers query result:', { data, error });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      
+      console.log('Loaded MCP servers:', data);
       setServers(data || []);
     } catch (error) {
       console.error('Error loading MCP servers:', error);
+      alert('Failed to load MCP servers. Check console for details.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Helper function to normalize authorization token
-  const normalizeAuthToken = (token?: string): string | undefined => {
-    if (!token) return undefined;
-    // Remove any existing "Bearer " prefix (case insensitive) to avoid duplication
-    return token.replace(/^bearer\s+/i, '');
+  const validateMCPServerJSON = (jsonString: string): { valid: boolean; data?: any; error?: string } => {
+    try {
+      const data = JSON.parse(jsonString);
+      
+      // Required fields validation
+      const requiredFields = ['type', 'name', 'url'];
+      for (const field of requiredFields) {
+        if (!data[field]) {
+          return { valid: false, error: `Missing required field: ${field}` };
+        }
+      }
+
+      // Type validation
+      if (data.type !== 'url') {
+        return { valid: false, error: 'Type must be "url"' };
+      }
+
+            // URL validation
+      if (!data.url.startsWith('https://')) {
+        return { valid: false, error: 'URL must start with https://' };
+      }
+
+      // Tool configuration validation (optional)
+      if (data.tool_configuration) {
+        if (typeof data.tool_configuration !== 'object') {
+          return { valid: false, error: 'tool_configuration must be an object' };
+        }
+        if (data.tool_configuration.enabled !== undefined && typeof data.tool_configuration.enabled !== 'boolean') {
+          return { valid: false, error: 'tool_configuration.enabled must be a boolean' };
+        }
+        if (data.tool_configuration.allowed_tools !== undefined && !Array.isArray(data.tool_configuration.allowed_tools)) {
+          return { valid: false, error: 'tool_configuration.allowed_tools must be an array' };
+        }
+      }
+
+      return { valid: true, data };
+    } catch (error: any) {
+      return { valid: false, error: `Invalid JSON: ${error.message}` };
+    }
   };
 
   const handleSaveServer = async () => {
     try {
-      if (!formData.name || !formData.url) {
-        alert('Please fill in all required fields');
+      const validation = validateMCPServerJSON(jsonInput);
+      
+      if (!validation.valid) {
+        setJsonError(validation.error || 'Invalid JSON');
         return;
       }
 
       const serverData = {
-        ...formData,
-        // Normalize the authorization token
-        authorization_token: normalizeAuthToken(formData.authorization_token),
+        name: validation.data.name,
+        url: validation.data.url,
+        authorization_token: validation.data.authorization_token || null,
+        tool_configuration: validation.data.tool_configuration || { enabled: true, allowed_tools: [] },
         user_id: user?.id,
         status: 'disconnected'
       };
@@ -126,7 +279,7 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
       resetForm();
     } catch (error) {
       console.error('Error saving MCP server:', error);
-      alert('Failed to save MCP server. Please try again.');
+      setJsonError('Failed to save MCP server. Please try again.');
     }
   };
 
@@ -150,7 +303,6 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
   const testServerConnection = async (server: MCPServer) => {
     setTestingServer(server.id!);
     try {
-      // Test the MCP server connection
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/test-mcp-server`, {
         method: 'POST',
         headers: {
@@ -159,7 +311,6 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
         },
         body: JSON.stringify({
           url: server.url,
-          // Format the token properly - if it doesn't start with "Bearer ", add it
           authorization_token: server.authorization_token ? 
             (server.authorization_token.startsWith('Bearer ') ? 
               server.authorization_token : 
@@ -171,7 +322,6 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
       const result = await response.json();
       
       if (result.success) {
-        // Update server status and tools
         await supabase
           .from('mcp_servers')
           .update({ 
@@ -182,7 +332,6 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
         
         await loadMCPServers();
       } else {
-        // More specific error handling
         if (result.status === 401) {
           alert('Authentication failed: Please check your authorization token and try again.');
         } else {
@@ -198,21 +347,14 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
   };
 
   const resetForm = () => {
-    setFormData({
-      name: '',
-      url: '',
-      authorization_token: '',
-      tool_configuration: {
-        enabled: true,
-        allowed_tools: []
-      }
-    });
+    setJsonInput('');
+    setJsonError('');
+    setSelectedPreset('');
     setShowAddForm(false);
     setEditingServer(null);
   };
 
   const startEdit = (server: MCPServer) => {
-    setFormData(server);
     setEditingServer(server);
     setShowAddForm(true);
   };
@@ -222,6 +364,27 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
       ...prev,
       [serverId]: !prev[serverId]
     }));
+  };
+
+  const handlePresetSelect = (presetKey: string) => {
+    setSelectedPreset(presetKey);
+    const selectedPreset = MCP_PRESETS[presetKey] || MCP_SERVER_TEMPLATE;
+    setJsonInput(JSON.stringify(selectedPreset, null, 2));
+    setJsonError('');
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+  };
+
+  const formatJsonInput = () => {
+    try {
+      const parsed = JSON.parse(jsonInput);
+      setJsonInput(JSON.stringify(parsed, null, 2));
+      setJsonError('');
+    } catch (error) {
+      setJsonError('Invalid JSON format');
+    }
   };
 
   if (loading) {
@@ -261,13 +424,22 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
               </div>
             </div>
             
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-indigo-500/25"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add MCP Server</span>
-            </button>
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={debugMCPServers}
+                className="flex items-center space-x-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+                title="Debug MCP loading (check console)"
+              >
+                🐛 Debug
+              </button>
+              <button
+                onClick={() => setShowAddForm(true)}
+                className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-indigo-500/25"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add MCP Server</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -319,109 +491,118 @@ export const MCPServerManager: React.FC<MCPServerManagerProps> = ({ onBack }) =>
           </div>
         </div>
 
-        {/* Add/Edit Form */}
+        {/* JSON Editor Modal */}
         {showAddForm && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="bg-slate-800 rounded-2xl border border-slate-700 p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold">
-                  {editingServer ? 'Edit MCP Server' : 'Add MCP Server'}
-                </h2>
+                <div className="flex items-center space-x-3">
+                  <FileText className="w-6 h-6 text-indigo-400" />
+                  <h2 className="text-xl font-semibold">
+                    {editingServer ? 'Edit MCP Server' : 'Add MCP Server'}
+                  </h2>
+                </div>
                 <button
                   onClick={resetForm}
-                  className="text-slate-400 hover:text-white transition-colors"
+                  className="text-slate-400 hover:text-white transition-colors text-2xl"
                 >
                   ×
                 </button>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Server Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="e.g., Supabase MCP Server"
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-slate-50 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Server URL *
-                  </label>
-                  <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <input
-                      type="url"
-                      value={formData.url}
-                      onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
-                      placeholder="https://your-mcp-server.com/sse"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-slate-50 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                    />
-                  </div>
-                  <p className="text-xs text-slate-500 mt-1">Must be HTTPS URL with SSE or Streamable HTTP transport</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Authorization Token
-                  </label>
-                  <div className="relative">
-                    <Shield className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <input
-                      type={showToken['form'] ? 'text' : 'password'}
-                      value={formData.authorization_token || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, authorization_token: e.target.value }))}
-                      placeholder="Token (optional, 'Bearer' prefix will be added if needed)"
-                      className="w-full pl-10 pr-12 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-slate-50 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200"
-                    />
+              {/* Preset Selector */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-slate-300 mb-3">
+                  Quick Start Templates
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {Object.entries(MCP_PRESETS).map(([key, preset]) => (
                     <button
-                      type="button"
-                      onClick={() => toggleTokenVisibility('form')}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                      key={key}
+                      onClick={() => handlePresetSelect(key)}
+                      className={`p-3 rounded-lg border text-sm font-medium transition-all duration-200 ${
+                        selectedPreset === key 
+                          ? 'border-indigo-500 bg-indigo-500/10 text-indigo-400' 
+                          : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500'
+                      }`}
                     >
-                      {showToken['form'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      {preset.name.replace(' MCP Server', '')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* JSON Editor */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-slate-300">
+                    MCP Server Configuration (JSON)
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={formatJsonInput}
+                      className="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm rounded-lg transition-colors duration-200"
+                    >
+                      Format JSON
+                    </button>
+                    <button
+                      onClick={() => copyToClipboard(jsonInput)}
+                      className="p-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors duration-200"
+                      title="Copy to clipboard"
+                    >
+                      <Copy className="w-4 h-4" />
                     </button>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">Enter token value only - "Bearer" prefix will be added automatically if needed</p>
                 </div>
 
-                <div>
-                  <label className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      checked={formData.tool_configuration?.enabled}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        tool_configuration: {
-                          ...prev.tool_configuration,
-                          enabled: e.target.checked
-                        }
-                      }))}
-                      className="w-4 h-4 text-indigo-600 bg-slate-900 border-slate-600 rounded focus:ring-indigo-500 focus:ring-2"
-                    />
-                    <span className="text-sm font-medium text-slate-300">Enable tools from this server</span>
-                  </label>
+                <div className="relative">
+                  <textarea
+                    value={jsonInput}
+                    onChange={(e) => {
+                      setJsonInput(e.target.value);
+                      setJsonError('');
+                    }}
+                    placeholder="Enter MCP server configuration as JSON..."
+                    className="w-full h-64 px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-xl text-slate-50 placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all duration-200 font-mono text-sm resize-none"
+                  />
+                  {jsonError && (
+                    <div className="absolute -bottom-8 left-0 flex items-center space-x-2 text-red-400 text-sm">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>{jsonError}</span>
+                    </div>
+                  )}
                 </div>
+              </div>
 
-                <div className="flex justify-end space-x-4">
-                  <button
-                    onClick={resetForm}
-                    className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-medium transition-colors duration-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveServer}
-                    className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl font-medium transition-all duration-200"
-                  >
-                    {editingServer ? 'Update Server' : 'Add Server'}
-                  </button>
+              {/* Schema Documentation */}
+              <div className="mt-8 p-4 bg-slate-900/50 rounded-xl border border-slate-600">
+                <h3 className="text-sm font-medium text-slate-300 mb-3">JSON Schema Reference</h3>
+                <div className="text-xs text-slate-400 space-y-1 font-mono">
+                  <div><span className="text-indigo-400">type</span>: <span className="text-amber-400">"url"</span> <span className="text-red-400">(required)</span> - Currently only "url" is supported</div>
+                  <div><span className="text-indigo-400">name</span>: <span className="text-amber-400">string</span> <span className="text-red-400">(required)</span> - Unique identifier for this MCP server</div>
+                  <div><span className="text-indigo-400">url</span>: <span className="text-amber-400">string</span> <span className="text-red-400">(required)</span> - Must start with https://</div>
+                  <div><span className="text-indigo-400">authorization_token</span>: <span className="text-amber-400">string</span> <span className="text-slate-500">(optional)</span> - OAuth authorization token</div>
+                  <div><span className="text-indigo-400">tool_configuration</span>: <span className="text-amber-400">object</span> <span className="text-slate-500">(optional)</span> - Configure tool usage</div>
+                  <div className="ml-4"><span className="text-indigo-400">enabled</span>: <span className="text-amber-400">boolean</span> - Whether to enable tools (default: true)</div>
+                  <div className="ml-4"><span className="text-indigo-400">allowed_tools</span>: <span className="text-amber-400">string[]</span> - Restrict allowed tools (default: all tools)</div>
+                  <div className="text-emerald-400 text-xs mt-2">💡 MCP automatically discovers tools - use tool_configuration to restrict access</div>
                 </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end space-x-4 mt-6">
+                <button
+                  onClick={resetForm}
+                  className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl font-medium transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveServer}
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white rounded-xl font-medium transition-all duration-200"
+                >
+                  {editingServer ? 'Update Server' : 'Add Server'}
+                </button>
               </div>
             </div>
           </div>

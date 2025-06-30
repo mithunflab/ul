@@ -205,13 +205,17 @@ serve(async (req)=>{
 
     // Prepare MCP servers for Claude API
     const mcpServersForClaude = (mcpServers || [])
-      .filter(server => server.tool_configuration?.enabled !== false)
+      .filter(server => {
+        // Include servers without tool_configuration (defaults to enabled)
+        // Only exclude if explicitly disabled
+        return server.tool_configuration?.enabled !== false;
+      })
       .map(server => ({
         type: "url",
         url: server.url,
         name: server.name,
         authorization_token: server.authorization_token,
-        tool_configuration: server.tool_configuration
+        ...(server.tool_configuration && { tool_configuration: server.tool_configuration })
       }));
     // Prepare messages for Claude
     const messages = [
@@ -306,16 +310,18 @@ serve(async (req)=>{
                       content: textContent
                     })}\n\n`);
                     controller.enqueue(chunk);
-                  } else if (parsed.type === 'content_block_start' && parsed.content_block?.type === 'server_tool_use') {
+                  } else if (parsed.type === 'content_block_start' && 
+                           (parsed.content_block?.type === 'server_tool_use' || parsed.content_block?.type === 'mcp_tool_use')) {
                     currentToolUse = parsed.content_block;
-                    console.log('Tool use started:', currentToolUse?.name);
+                    console.log('Tool use started:', currentToolUse?.name, 'type:', currentToolUse?.type);
                     // Send tool use start indicator
                     if (currentToolUse && currentToolUse?.name && currentToolUse?.id) {
                     const chunk = new TextEncoder().encode(`data: ${JSON.stringify({
                       type: 'tool_start',
                       content: {
                         tool: currentToolUse.name,
-                        id: currentToolUse.id
+                        id: currentToolUse.id,
+                        server_name: currentToolUse.server_name || 'unknown'
                       }
                     })}\n\n`);
                     controller.enqueue(chunk);
@@ -327,13 +333,16 @@ serve(async (req)=>{
                       content: parsed.delta.partial_json
                     })}\n\n`);
                     controller.enqueue(chunk);
-                  } else if (parsed.type === 'content_block_start' && parsed.content_block?.type === 'web_search_tool_result') {
-                    console.log('Web search result received');
+                  } else if (parsed.type === 'content_block_start' && 
+                           (parsed.content_block?.type === 'web_search_tool_result' || parsed.content_block?.type === 'mcp_tool_result')) {
+                    console.log('Tool result received:', parsed.content_block?.type);
                     const chunk = new TextEncoder().encode(`data: ${JSON.stringify({
                       type: 'tool_result',
                       content: {
-                        tool: 'web_search',
-                        result: parsed.content_block.content
+                        tool: parsed.content_block.type === 'mcp_tool_result' ? 'mcp' : 'web_search',
+                        result: parsed.content_block.content,
+                        ...(parsed.content_block.tool_use_id && { tool_use_id: parsed.content_block.tool_use_id }),
+                        ...(parsed.content_block.is_error && { is_error: parsed.content_block.is_error })
                       }
                     })}\n\n`);
                     controller.enqueue(chunk);
