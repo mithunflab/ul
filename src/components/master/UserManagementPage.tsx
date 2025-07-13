@@ -29,7 +29,6 @@ export const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive' | 'suspended'>('all');
-  const [isLoading, setIsLoading] = useState(false);
 
   // Mock data
   const mockUsers: User[] = [
@@ -76,15 +75,12 @@ export const UserManagementPage: React.FC = () => {
   }, []);
 
   const loadUsers = async () => {
-    setIsLoading(true);
     try {
       // TODO: Load from Supabase users table
       await new Promise(resolve => setTimeout(resolve, 1000));
       setUsers(mockUsers);
     } catch (error) {
       console.error('Failed to load users:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 

@@ -30,7 +30,6 @@ export const CreditManagementPage: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<UserCredit | null>(null);
   const [showAddCredits, setShowAddCredits] = useState(false);
   const [creditAmount, setCreditAmount] = useState({ ai: 0, workflow: 0 });
-  const [isLoading, setIsLoading] = useState(false);
 
   // Mock data - replace with actual API calls
   const mockUsers: UserCredit[] = [
@@ -77,15 +76,12 @@ export const CreditManagementPage: React.FC = () => {
   }, []);
 
   const loadUsers = async () => {
-    setIsLoading(true);
     try {
       // TODO: Load from Supabase users table with credit information
       await new Promise(resolve => setTimeout(resolve, 1000));
       setUsers(mockUsers);
     } catch (error) {
       console.error('Failed to load users:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
