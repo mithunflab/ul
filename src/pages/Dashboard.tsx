@@ -464,7 +464,7 @@ export const Dashboard: React.FC = () => {
         )}
       </main>
 
-      {/* Premium Footer */}
+      {/* Premium Footer with Master Portal Button */}
       <footer className="relative mt-24 py-12 border-t border-slate-700/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-6">
@@ -478,6 +478,18 @@ export const Dashboard: React.FC = () => {
             <p className="text-slate-400 max-w-md mx-auto">
               Empowering enterprise automation through intelligent voice interfaces and AI-driven workflow generation.
             </p>
+
+            {/* Master Portal Access Button */}
+            <div className="flex justify-center mb-6">
+              <button
+                onClick={() => navigate('/master')}
+                className="group flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white rounded-2xl font-bold transition-all duration-300 shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/40 hover:scale-105 hover:-translate-y-1"
+              >
+                <Crown className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
+                <span>Master Portal</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+              </button>
+            </div>
 
             <div className="flex items-center justify-center space-x-2 text-slate-500 text-sm">
               <span>Crafted with</span>
