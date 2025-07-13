@@ -30,7 +30,7 @@ export const useAuth = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = authService.onAuthStateChange(
-      (event, session) => {
+      (_, session) => {
         setAuthState({
           user: session?.user ?? null,
           session: session,

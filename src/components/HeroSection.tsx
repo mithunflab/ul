@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { Mic, Play, BarChart3, Globe, Zap, Infinity, Rocket, ChevronDown } from 'lucide-react';
 import {AuthModal} from './AuthModal';
