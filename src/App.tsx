@@ -4,12 +4,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'sonner';
 import { useAuth } from './hooks/useAuth';
 import { AuthModal } from './components/AuthModal';
-import { HeroSection } from './components/HeroSection';
-import { FeaturesSection } from './components/FeaturesSection';
-import { VoiceDemoSection } from './components/VoiceDemoSection';
-import { UseCasesSection } from './components/UseCasesSection';
-import { TechStackSection } from './components/TechStackSection';
-import { CTASection } from './components/CTASection';
+import HeroSection from './components/HeroSection';
+import FeaturesSection from './components/FeaturesSection';
+import VoiceDemoSection from './components/VoiceDemoSection';
+import UseCasesSection from './components/UseCasesSection';
+import TechStackSection from './components/TechStackSection';
+import CTASection from './components/CTASection';
 import { Dashboard } from './pages/Dashboard';
 import { MasterPortal } from './pages/MasterPortal';
 import Footer from './components/Footer';
@@ -75,7 +75,7 @@ function App() {
           />
         </Routes>
         
-        <AuthModal />
+        <AuthModal isOpen={false} onClose={() => {}} />
         <Toaster />
       </div>
     </Router>
