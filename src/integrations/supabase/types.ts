@@ -77,6 +77,111 @@ export type Database = {
         }
         Relationships: []
       }
+      master_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          permissions: Json | null
+          role: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          permissions?: Json | null
+          role?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          permissions?: Json | null
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mcp_servers: {
+        Row: {
+          authorization_token: string | null
+          created_at: string | null
+          id: string
+          last_health_check: string | null
+          name: string
+          status: string | null
+          tool_configuration: Json | null
+          updated_at: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          authorization_token?: string | null
+          created_at?: string | null
+          id?: string
+          last_health_check?: string | null
+          name: string
+          status?: string | null
+          tool_configuration?: Json | null
+          updated_at?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          authorization_token?: string | null
+          created_at?: string | null
+          id?: string
+          last_health_check?: string | null
+          name?: string
+          status?: string | null
+          tool_configuration?: Json | null
+          updated_at?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email: string
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       repositories: {
         Row: {
           created_at: string | null
@@ -172,6 +277,10 @@ export type Database = {
           ai_credits: number
           workflow_credits: number
         }[]
+      }
+      is_master_user: {
+        Args: { user_email?: string }
+        Returns: boolean
       }
     }
     Enums: {
