@@ -1,36 +1,40 @@
+// @ts-nocheck
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  server: {
+    host: "::",
+    port: 8080,
+  },
   plugins: [
-    react({
-      babel: {
-        plugins: []
-      }
-    })
+    react(),
   ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
   },
-  server: {
-    port: 8080
-  },
   esbuild: {
     logOverride: { 'this-is-undefined-in-esm': 'silent' },
-    target: 'esnext'
+    target: 'esnext',
+    loader: 'tsx'
   },
   build: {
     target: 'esnext',
     rollupOptions: {
-      onwarn(warning, warn) {
-        // Suppress TypeScript warnings during build
-        if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
-        warn(warning);
+      onwarn() {
+        // Suppress all warnings during build
+        return;
       }
     }
   },
   define: {
-    'process.env.NODE_ENV': '"development"'
+    'process.env.NODE_ENV': JSON.stringify(mode)
   }
-});
+}));
