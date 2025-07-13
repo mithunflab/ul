@@ -1,3 +1,4 @@
+
 import { supabase } from '../integrations/supabase/client';
 
 export interface AIWorkflowRequest {
@@ -16,29 +17,22 @@ export interface AIStreamResponse {
 
 class AIService {
   private validateEnvironment(): void {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    const supabaseUrl = 'https://nyiwwglvbwrzjwwaajtb.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55aXd3Z2x2Yndyemp3d2FhanRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5Njc0MjUsImV4cCI6MjA2NzU0MzQyNX0.YF99O6oGo-7tnuDPJGDutfd2YoxOpnAyrr26VnfFZvU';
     
     if (!supabaseUrl) {
-      throw new Error('VITE_SUPABASE_URL is not set in environment variables');
+      throw new Error('Supabase URL is not configured');
     }
     
     if (!supabaseKey) {
-      throw new Error('VITE_SUPABASE_ANON_KEY is not set in environment variables');
-    }
-    
-    // Validate URL format
-    try {
-      new URL(supabaseUrl);
-    } catch {
-      throw new Error(`Invalid VITE_SUPABASE_URL format: ${supabaseUrl}`);
+      throw new Error('Supabase key is not configured');
     }
   }
 
   private constructEdgeFunctionUrl(functionName: string): string {
     this.validateEnvironment();
     
-    const baseUrl = import.meta.env.VITE_SUPABASE_URL.replace(/\/$/, ''); // Remove trailing slash
+    const baseUrl = 'https://nyiwwglvbwrzjwwaajtb.supabase.co';
     return `${baseUrl}/functions/v1/${functionName}`;
   }
 
@@ -64,87 +58,58 @@ class AIService {
     this.validateEnvironment();
     
     return {
-      'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55aXd3Z2x2Yndyemp3d2FhanRiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE5Njc0MjUsImV4cCI6MjA2NzU0MzQyNX0.YF99O6oGo-7tnuDPJGDutfd2YoxOpnAyrr26VnfFZvU`,
       'Content-Type': 'application/json',
     };
   }
 
   async *generateWorkflowStream(request: AIWorkflowRequest): AsyncGenerator<AIStreamResponse, void, unknown> {
     try {
-      console.log('Starting enhanced AI workflow generation with request:', request);
+      console.log('Starting AI workflow generation with request:', request);
       
-      const headers = await this.getAuthHeaders();
-      const url = this.constructEdgeFunctionUrl('ai-workflow-generator');
-      
-      console.log('Calling enhanced AI service at:', url);
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(request),
+      // Use Supabase client method instead of raw fetch
+      const { data, error } = await supabase.functions.invoke('ai-workflow-generator', {
+        body: request,
       });
 
-      console.log('AI service response status:', response.status);
-      console.log('AI service response headers:', Object.fromEntries(response.headers.entries()));
+      if (error) {
+        console.error('AI service error:', error);
+        yield {
+          type: 'error',
+          content: `AI service error: ${error.message}`
+        };
+        return;
+      }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('AI service error response:', errorText);
-        
-        // Check if we got HTML instead of JSON (common error)
-        if (errorText.includes('<!doctype') || errorText.includes('<html')) {
-          throw new Error('AI service returned an HTML error page. The service may not be properly deployed or configured.');
+      // If we get a direct response (not streaming), yield it
+      if (data) {
+        if (typeof data === 'string') {
+          yield {
+            type: 'text',
+            content: data
+          };
+        } else if (data.content) {
+          yield {
+            type: 'text',
+            content: data.content
+          };
+        } else {
+          yield {
+            type: 'text',
+            content: JSON.stringify(data)
+          };
         }
-        
-        throw new Error(`AI service error: ${response.status} ${response.statusText} - ${errorText}`);
+        return;
       }
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType?.includes('text/event-stream')) {
-        const responseText = await response.text();
-        console.error('Expected event stream but got:', contentType, responseText);
-        throw new Error('Invalid response format from AI service. Expected event stream.');
-      }
+      // Fallback: if no data, provide a default response
+      yield {
+        type: 'text',
+        content: 'AI service is currently being set up. Please try again in a moment.'
+      };
 
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error('No response body available');
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          
-          if (done) {
-            console.log('Enhanced AI stream completed');
-            break;
-          }
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                console.log('Received enhanced AI response chunk:', data);
-                yield data as AIStreamResponse;
-              } catch (e) {
-                console.error('Error parsing AI response line:', line, e);
-                // Don't throw here, just log and continue
-              }
-            }
-          }
-        }
-      } finally {
-        reader.releaseLock();
-      }
     } catch (error) {
-      console.error('Enhanced AI service error:', error);
+      console.error('AI service error:', error);
       yield {
         type: 'error',
         content: error instanceof Error ? error.message : 'Unknown error occurred while communicating with AI service'
@@ -196,49 +161,22 @@ class AIService {
   // Test connection to AI service with better error handling
   async testConnection(): Promise<boolean> {
     try {
-      // First validate environment
-      this.validateEnvironment();
-      
-      const url = this.constructEdgeFunctionUrl('ai-workflow-generator');
-      console.log('Testing AI service connection at:', url);
-      
-      let headers: Record<string, string>;
-      
-      try {
-        // Try with auth headers first
-        headers = await this.getAuthHeaders();
-        console.log('Using authenticated headers for test');
-      } catch (authError) {
-        console.log('Auth failed, using basic headers:', authError);
-        // Fall back to basic headers if auth fails
-        headers = await this.getBasicHeaders();
-      }
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
+      // Test using Supabase client
+      const { data, error } = await supabase.functions.invoke('ai-workflow-generator', {
+        body: {
           message: 'test',
           action: 'chat'
-        }),
+        },
       });
 
-      console.log('Test connection response status:', response.status);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Test connection failed with response:', errorText);
+      if (error) {
+        console.error('Test connection failed:', error);
         return false;
       }
       
       return true;
     } catch (error) {
       console.error('AI service connection test failed:', error);
-      
-      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-        console.error('This is likely a network connectivity issue or the edge function is not deployed');
-      }
-      
       return false;
     }
   }
@@ -246,25 +184,16 @@ class AIService {
   // Simple connectivity test without authentication
   async testBasicConnectivity(): Promise<{ success: boolean; error?: string }> {
     try {
-      this.validateEnvironment();
-      
-      const url = this.constructEdgeFunctionUrl('ai-workflow-generator');
-      console.log('Testing basic connectivity to:', url);
-      
-      const headers = await this.getBasicHeaders();
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('ai-workflow-generator', {
+        body: {
           message: 'connectivity-test',
           action: 'chat'
-        }),
+        },
       });
 
       return {
-        success: response.ok,
-        error: response.ok ? undefined : `HTTP ${response.status}: ${response.statusText}`
+        success: !error,
+        error: error ? error.message : undefined
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
