@@ -1,15 +1,15 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from "../integrations/supabase/client";
 
 interface GlobalSetting {
   id: string;
   setting_key: string;
   setting_value: string;
   description: string | null;
-  is_encrypted: boolean;
-  created_at: string;
-  updated_at: string;
+  is_encrypted: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export const useGlobalSettings = () => {

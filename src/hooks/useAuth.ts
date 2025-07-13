@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { authService } from '../lib/supabase';
+import { supabase } from "../integrations/supabase/client";
 import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthState {
@@ -18,7 +18,7 @@ export const useAuth = () => {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { session } = await authService.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       setAuthState({
         user: session?.user ?? null,
         session: session,
@@ -29,7 +29,7 @@ export const useAuth = () => {
     getInitialSession();
 
     // Listen for auth changes
-    const { data: { subscription } } = authService.onAuthStateChange(
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_, session) => {
         setAuthState({
           user: session?.user ?? null,
@@ -44,7 +44,7 @@ export const useAuth = () => {
 
   const signOut = async () => {
     setAuthState(prev => ({ ...prev, loading: true }));
-    await authService.signOut();
+    await supabase.auth.signOut();
   };
 
   return {

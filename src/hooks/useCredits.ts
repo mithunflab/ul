@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
-import { supabase } from '../lib/supabase';
+import { supabase } from "../integrations/supabase/client";
 
 interface UserCredits {
   ai_credits: number;
