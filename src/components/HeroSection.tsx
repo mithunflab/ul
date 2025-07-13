@@ -40,6 +40,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onDashboardClick }) => {
     };
   }, []);
 
+ 
+
   const handleStartBuildingClick = () => {
     if (user && onDashboardClick) {
       onDashboardClick();

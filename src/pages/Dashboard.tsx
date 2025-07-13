@@ -464,10 +464,10 @@ export const Dashboard: React.FC = () => {
         )}
       </main>
 
-      {/* Enhanced Premium Footer with Prominent Master Portal Button */}
-      <footer className="relative mt-24 py-16 border-t border-slate-700/30 bg-gradient-to-br from-slate-900/50 to-slate-800/30 backdrop-blur-sm">
+      {/* Premium Footer */}
+      <footer className="relative mt-24 py-12 border-t border-slate-700/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-8">
+          <div className="text-center space-y-6">
             <div className="flex items-center justify-center space-x-3">
               <Logo size={32} />
               <span className="text-xl font-bold bg-gradient-to-r from-slate-50 to-indigo-200 bg-clip-text text-transparent">
@@ -478,51 +478,6 @@ export const Dashboard: React.FC = () => {
             <p className="text-slate-400 max-w-md mx-auto">
               Empowering enterprise automation through intelligent voice interfaces and AI-driven workflow generation.
             </p>
-
-            {/* Prominent Master Portal Access Section */}
-            <div className="bg-gradient-to-r from-purple-900/30 to-indigo-900/30 rounded-3xl p-8 border border-purple-500/20 backdrop-blur-sm max-w-2xl mx-auto">
-              <div className="space-y-6">
-                <div className="flex items-center justify-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center">
-                    <Crown className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-300 to-purple-100 bg-clip-text text-transparent">
-                      Master Portal Access
-                    </h3>
-                    <p className="text-purple-300/80 text-sm">Advanced administration & analytics</p>
-                  </div>
-                </div>
-                
-                <p className="text-slate-300 text-center max-w-lg mx-auto">
-                  Access advanced system administration, user management, analytics, and enterprise controls.
-                </p>
-
-                <button
-                  onClick={() => navigate('/master')}
-                  className="group w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white py-4 px-8 rounded-2xl font-bold text-lg transition-all duration-300 shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 hover:-translate-y-1 flex items-center justify-center space-x-3"
-                >
-                  <Crown className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
-                  <span>Enter Master Portal</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </button>
-
-                <div className="flex items-center justify-center space-x-6 text-purple-300/60 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Users className="w-4 h-4" />
-                    <span>User Management</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <BarChart3 className="w-4 h-4" />
-                    <span>Analytics</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Settings className="w-4 h-4" />
-                    <span>System Config</span>
-                  </div>
-                </div>
-              </div>
-            </div>
 
             <div className="flex items-center justify-center space-x-2 text-slate-500 text-sm">
               <span>Crafted with</span>
