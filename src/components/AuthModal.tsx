@@ -11,7 +11,7 @@ import {
   Loader2
 } from 'lucide-react';
 import Logo from './Logo';
-import { authService } from '../lib/supabase';
+import { supabase } from '../integrations/supabase/client';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -95,8 +95,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
     
     try {
       const { data, error } = mode === 'signin' 
-        ? await authService.signIn(formData.email, formData.password)
-        : await authService.signUp(formData.email, formData.password);
+        ? await supabase.auth.signInWithPassword({ email: formData.email, password: formData.password })
+        : await supabase.auth.signUp({ 
+            email: formData.email, 
+            password: formData.password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/dashboard`,
+            }
+          });
       
       if (error) {
         setErrors({ general: error.message });

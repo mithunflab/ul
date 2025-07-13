@@ -19,7 +19,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../integrations/supabase/client';
 import Logo from './Logo';
 
 interface UserProfile {
