@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -18,7 +17,6 @@ import {
 } from 'lucide-react';
 import { useMasterAuth } from '../hooks/useMasterAuth';
 import { MasterPortalLogin } from '../components/MasterPortalLogin';
-import Logo from '../components/Logo';
 
 // Placeholder components for different sections
 const MasterDashboard = () => (
