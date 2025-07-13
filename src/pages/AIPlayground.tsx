@@ -88,7 +88,7 @@ interface AIActivity {
 
 
 export const AIPlayground: React.FC<AIPlaygroundProps> = ({ onBack }) => {
-  const { workflows, activeConnection, activateWorkflow, deactivateWorkflow, createWorkflow, loadWorkflows, isLoading: isLoadingWorkflows } = useN8n();
+  const { workflows, activeConnection, createWorkflow, loadWorkflows } = useN8n();
   
   // Voice functionality
   const voice = useVoice({
@@ -449,7 +449,7 @@ export const AIPlayground: React.FC<AIPlaygroundProps> = ({ onBack }) => {
         else if (response.type === 'tool_start') {
           const toolActivity: AIActivity = {
             id: `tool-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            type: response.content.tool === 'web_search' ? 'web_search' : 'code_execution',
+            type: response.content.tool === 'web_search' ? 'web_search' : 'workflow_generation',
             status: 'running',
             title: response.content.tool === 'web_search' ? 'Searching Web' : 'Executing Code',
             description: response.content.tool === 'web_search' ? 'Searching for latest information...' : 'Running code execution...',
@@ -961,7 +961,7 @@ export const AIPlayground: React.FC<AIPlaygroundProps> = ({ onBack }) => {
 
             {/* Workflows List */}
             <div className="flex-1 overflow-y-auto scrollbar-hide">
-              {isLoadingWorkflows ? (
+              {false ? (
                 <div className="p-4 space-y-3">
                   {[...Array(5)].map((_, i) => (
                     <div key={i} className="bg-slate-800/40 rounded-xl p-4 animate-pulse">

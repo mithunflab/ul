@@ -124,7 +124,7 @@ const ProfilePage: React.FC = () => {
       const { error } = await supabase
         .from('profiles')
         .upsert({
-          id: user?.id,
+          user_id: user?.id,
           ...editForm,
           updated_at: new Date().toISOString(),
         });

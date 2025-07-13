@@ -29,5 +29,8 @@ export default defineConfig({
         warn(warning);
       }
     }
+  },
+  define: {
+    'process.env.NODE_ENV': '"development"'
   }
 });

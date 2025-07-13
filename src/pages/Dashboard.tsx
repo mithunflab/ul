@@ -41,7 +41,7 @@ import Logo from '../components/Logo';
 
 type ViewMode = 'grid' | 'list';
 type FilterType = 'all' | 'active' | 'inactive';
-type PageView = 'dashboard' | 'playground' | 'mcp-servers';
+type PageView = 'dashboard' | 'playground' | 'mcp-servers' | 'profile';
 
 export const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
