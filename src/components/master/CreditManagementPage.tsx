@@ -1,17 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   CreditCard, 
   Search, 
   Plus, 
-  Minus, 
   User, 
   Zap, 
   Workflow,
   Filter,
-  MoreVertical,
   Eye,
-  Edit3,
   History
 } from 'lucide-react';
 

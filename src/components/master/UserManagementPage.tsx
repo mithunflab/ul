@@ -1,19 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Search, 
-  Filter, 
-  MoreVertical,
   UserPlus,
   Mail,
-  Calendar,
   Activity,
   Ban,
   CheckCircle,
   AlertCircle,
-  Edit3,
-  Trash2
+  Edit3
 } from 'lucide-react';
 
 interface User {
