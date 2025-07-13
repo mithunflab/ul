@@ -10,9 +10,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
-}
 
-  },
+ },
   "dependencies": {
     "@revenuecat/purchases-js": "^1.7.0",
     "@supabase/supabase-js": "^2.39.0",
