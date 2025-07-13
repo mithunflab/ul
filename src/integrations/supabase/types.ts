@@ -14,16 +14,168 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          credit_type: Database["public"]["Enums"]["credit_type"]
+          description: string | null
+          id: string
+          reference_id: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          credit_type: Database["public"]["Enums"]["credit_type"]
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          credit_type?: Database["public"]["Enums"]["credit_type"]
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      global_settings: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_encrypted: boolean | null
+          setting_key: string
+          setting_value: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_encrypted?: boolean | null
+          setting_key: string
+          setting_value: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_encrypted?: boolean | null
+          setting_key?: string
+          setting_value?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      repositories: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          github_url: string
+          id: string
+          is_active: boolean | null
+          repository_name: string
+          updated_at: string | null
+          user_id: string
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          github_url: string
+          id?: string
+          is_active?: boolean | null
+          repository_name: string
+          updated_at?: string | null
+          user_id: string
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          github_url?: string
+          id?: string
+          is_active?: boolean | null
+          repository_name?: string
+          updated_at?: string | null
+          user_id?: string
+          workflow_id?: string
+        }
+        Relationships: []
+      }
+      user_credits: {
+        Row: {
+          ai_credits: number
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+          workflow_credits: number
+        }
+        Insert: {
+          ai_credits?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+          workflow_credits?: number
+        }
+        Update: {
+          ai_credits?: number
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+          workflow_credits?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      add_credits: {
+        Args: {
+          p_user_id: string
+          p_credit_type: Database["public"]["Enums"]["credit_type"]
+          p_amount: number
+          p_transaction_type: string
+          p_description?: string
+        }
+        Returns: boolean
+      }
+      deduct_credits: {
+        Args: {
+          p_user_id: string
+          p_credit_type: Database["public"]["Enums"]["credit_type"]
+          p_amount: number
+          p_transaction_type: string
+          p_description?: string
+          p_reference_id?: string
+        }
+        Returns: boolean
+      }
+      get_user_credits: {
+        Args: { p_user_id: string }
+        Returns: {
+          ai_credits: number
+          workflow_credits: number
+        }[]
+      }
     }
     Enums: {
-      [_ in never]: never
+      credit_type: "ai" | "workflow"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +302,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      credit_type: ["ai", "workflow"],
+    },
   },
 } as const
