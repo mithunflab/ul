@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { 
   Mic, 
   Play, 
@@ -29,39 +30,20 @@ import PricingModal from './components/PricingModal';
 import { useAuth } from './hooks/useAuth';
 import Logo from './components/Logo';
 
-function App() {
-  
+function LandingPage() {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [pricingModalOpen, setPricingModalOpen] = useState(false);
   const [pricingRequested, setPricingRequested] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'home' | 'dashboard'>('home');
-  const { user, loading, signOut } = useAuth();
 
-  // Check URL path and set current page
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (path === '/dashboard' && user) {
-      setCurrentPage('dashboard');
-    } else {
-      setCurrentPage('home');
-    }
-  }, [user]);
-
-  // Update URL when page changes
-  useEffect(() => {
-    if (currentPage === 'dashboard' && user) {
-      window.history.pushState({}, '', '/dashboard');
-    } else {
-      window.history.pushState({}, '', '/');
-    }
-  }, [currentPage, user]);
 
 
   const handleGetStarted = () => {
     if (user) {
       // User is authenticated, go to dashboard
-      setCurrentPage('dashboard');
+      navigate('/dashboard');
     } else {
       // User is not authenticated, show auth modal
       setAuthModalOpen(true);
@@ -76,13 +58,13 @@ function App() {
       setPricingRequested(false);
     } else {
       // Normal flow - redirect to dashboard
-      setCurrentPage('dashboard');
+      navigate('/dashboard');
     }
   };
 
   const handleSignOut = async () => {
     await signOut();
-    setCurrentPage('home');
+    navigate('/');
   };
 
   const handlePricingClick = () => {
@@ -96,22 +78,6 @@ function App() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="flex items-center space-x-3 text-slate-400">
-          <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-amber-500 rounded-full animate-pulse"></div>
-          <span>Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Show dashboard if user is authenticated and on dashboard page
-  if (currentPage === 'dashboard' && user) {
-    return <Dashboard />;
-  }
-
   return (
     <div className="min-h-screen bg-slate-900 text-slate-50 font-['Inter',sans-serif]">
       {/* Navigation Header */}
@@ -119,7 +85,7 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
-            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => setCurrentPage('home')}>
+            <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => navigate('/')}>
               <div className="transition-transform duration-300 group-hover:scale-105">
                 <Logo size={36} />
               </div>
@@ -146,7 +112,7 @@ function App() {
                     <span className="text-slate-300 text-sm font-medium truncate max-w-32">{user.email}</span>
                   </div>
                   <button
-                    onClick={() => setCurrentPage('dashboard')}
+                    onClick={() => navigate('/dashboard')}
                     className="bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-6 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 hover:scale-105"
                   >
                     Dashboard
@@ -193,7 +159,7 @@ function App() {
                     </div>
                     <button
                       onClick={() => {
-                        setCurrentPage('dashboard');
+                        navigate('/dashboard');
                         setMobileMenuOpen(false);
                       }}
                       className="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-6 py-4 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-indigo-500/25"
@@ -1082,6 +1048,48 @@ function App() {
         userId={user?.id}
       />
     </div>
+  );
+}
+
+// Protected Route Component
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="flex items-center space-x-3 text-slate-400">
+          <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-amber-500 rounded-full animate-pulse"></div>
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+}
+
+// Main App Component with Router
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route 
+          path="/dashboard/*" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 

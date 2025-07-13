@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Grid3X3, 
   List, 
@@ -29,7 +30,9 @@ import {
   Heart,
   ShieldCheck,
   Layers,
-  Command
+  Command,
+  Home,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useN8n } from '../hooks/useN8n';
@@ -42,10 +45,11 @@ import Logo from '../components/Logo';
 
 type ViewMode = 'grid' | 'list';
 type FilterType = 'all' | 'active' | 'inactive';
-type PageView = 'dashboard' | 'playground' | 'mcp-servers' | 'profile';
 
 export const Dashboard: React.FC = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const { 
     activeConnection, 
     workflows, 
@@ -61,7 +65,6 @@ export const Dashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [showConnectionSetup, setShowConnectionSetup] = useState(false);
-  const [currentView, setCurrentView] = useState<PageView>('dashboard');
 
   // Check if user needs to connect n8n instance
   useEffect(() => {
@@ -128,14 +131,6 @@ export const Dashboard: React.FC = () => {
       );
     }
 
-    if (currentView === 'playground') {
-      return <AIPlayground onBack={() => setCurrentView('dashboard')} />;
-    }
-
-    if (currentView === 'mcp-servers') {
-      return <MCPServerManager onBack={() => setCurrentView('dashboard')} />;
-    }
-
     return renderDashboardContent();
   };
 
@@ -168,7 +163,7 @@ export const Dashboard: React.FC = () => {
             {/* Premium Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4">
               <button 
-                onClick={() => setCurrentView('playground')}
+                onClick={() => navigate('/dashboard/playground')}
                 className="group bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white px-8 py-4 rounded-2xl font-bold transition-all duration-300 shadow-2xl shadow-amber-500/30 hover:shadow-amber-500/40 hover:scale-105 hover:-translate-y-1 flex items-center space-x-3"
               >
                 <Bot className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
@@ -414,7 +409,7 @@ export const Dashboard: React.FC = () => {
                 {!searchQuery && filterType === 'all' && (
                   <div className="flex flex-col sm:flex-row gap-6 justify-center">
                     <button 
-                      onClick={() => setCurrentView('playground')}
+                      onClick={() => navigate('/dashboard/playground')}
                       className="group bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white px-10 py-6 rounded-2xl font-bold text-lg transition-all duration-300 shadow-2xl shadow-amber-500/30 hover:shadow-amber-500/40 hover:scale-105 hover:-translate-y-1 flex items-center space-x-4"
                     >
                       <Bot className="w-6 h-6 group-hover:scale-110 transition-transform duration-200" />
@@ -535,162 +530,157 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 
-  // Render different views with appropriate wrappers
-  if (currentView === 'playground') {
-    return (
-      <CleanWrapper>
-        <AIPlayground onBack={() => setCurrentView('dashboard')} />
-      </CleanWrapper>
-    );
-  }
-
-  if (currentView === 'mcp-servers') {
-    return (
-      <CleanWrapper>
-        <MCPServerManager onBack={() => setCurrentView('dashboard')} />
-      </CleanWrapper>
-    );
-  }
-
   return (
     <>
-    <DashboardWrapper>
-      {/* Premium Dashboard Header */}
-      <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/30 shadow-2xl shadow-slate-900/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
-            {/* Enhanced Logo */}
-            <div className="flex items-center space-x-4 group cursor-pointer">
-              <div className="transition-transform duration-300 group-hover:scale-110">
-                <Logo size={40} />
+      <DashboardWrapper>
+        {/* Premium Dashboard Header */}
+        <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-700/30 shadow-2xl shadow-slate-900/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-20">
+              {/* Enhanced Logo */}
+              <div className="flex items-center space-x-4 group cursor-pointer" onClick={() => navigate('/dashboard')}>
+                <div className="transition-transform duration-300 group-hover:scale-110">
+                  <Logo size={40} />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold bg-gradient-to-r from-slate-50 to-indigo-200 bg-clip-text text-transparent">
+                    WorkFlow AI
+                  </div>
+                  <div className="text-xs text-slate-400 font-medium">Dashboard</div>
+                </div>
               </div>
-              <div>
-                <div className="text-2xl font-bold bg-gradient-to-r from-slate-50 to-indigo-200 bg-clip-text text-transparent">
-                  WorkFlow AI
-                </div>
-                <div className="text-xs text-slate-400 font-medium">Dashboard</div>
-              </div>
-            </div>
 
-            {/* Premium Navigation */}
-            <div className="hidden md:flex items-center space-x-2 bg-slate-800/30 backdrop-blur-sm rounded-2xl p-2 border border-slate-700/30">
-              <button
-                onClick={() => setCurrentView('dashboard')}
-                className={`group flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                  currentView === 'dashboard' 
-                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-500/25' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-              >
-                <Database className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                <span>Workflows</span>
-                {currentView === 'dashboard' && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
-              </button>
-              
-              <button
-                onClick={() => setCurrentView('playground')}
-                className={`group flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                  currentView === 'playground' 
-                    ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg shadow-amber-500/25' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-              >
-                <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                <span>AI Playground</span>
-                {currentView === 'playground' && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
-              </button>
-
-              <button
-                onClick={() => setCurrentView('mcp-servers')}
-                className={`group flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                  currentView === 'mcp-servers' 
-                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-500/25' 
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
-              >
-                <Server className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                <span>MCP Servers</span>
-                {currentView === 'mcp-servers' && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
-              </button>
-            </div>
-
-            
-
-            {/* Premium User Menu */}
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setShowConnectionSetup(true)}
-                className="group p-3 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl transition-all duration-200 border border-slate-700/50 hover:border-slate-600"
-              >
-                <Settings className="w-5 h-5 text-slate-400 group-hover:text-white group-hover:rotate-90 transition-all duration-300" />
-              </button>
-              
-              <div className="flex items-center space-x-3 bg-slate-800/40 backdrop-blur-sm border border-slate-700/40 rounded-xl px-4 py-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-bold">{user?.email?.[0]?.toUpperCase()}</span>
-                </div>
-                <div className="hidden sm:block">
-                  <div className="text-sm font-medium text-slate-200">{user?.email}</div>
-                  <div className="text-xs text-slate-400">Premium User</div>
-                </div>
+              {/* Premium Navigation */}
+              <div className="hidden md:flex items-center space-x-2 bg-slate-800/30 backdrop-blur-sm rounded-2xl p-2 border border-slate-700/30">
                 <button
-                  onClick={signOut}
-                  className="text-slate-400 hover:text-red-400 transition-colors duration-200 p-1"
+                  onClick={() => navigate('/dashboard')}
+                  className={`group flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                    location.pathname === '/dashboard' 
+                      ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg shadow-indigo-500/25' 
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }`}
                 >
-                  <ArrowRight className="w-4 h-4 rotate-180" />
+                  <Home className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                  <span>Dashboard</span>
+                  {location.pathname === '/dashboard' && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+                </button>
+                
+                <button
+                  onClick={() => navigate('/dashboard/playground')}
+                  className={`group flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                    location.pathname === '/dashboard/playground' 
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg shadow-amber-500/25' 
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }`}
+                >
+                  <Bot className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                  <span>AI Playground</span>
+                  {location.pathname === '/dashboard/playground' && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+                </button>
+
+                <button
+                  onClick={() => navigate('/dashboard/mcp-servers')}
+                  className={`group flex items-center space-x-3 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                    location.pathname === '/dashboard/mcp-servers' 
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-500/25' 
+                      : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }`}
+                >
+                  <Server className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                  <span>MCP Servers</span>
+                  {location.pathname === '/dashboard/mcp-servers' && <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>}
+                </button>
+              </div>
+
+              {/* Premium User Menu */}
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setShowConnectionSetup(true)}
+                  className="group p-3 bg-slate-800/50 hover:bg-slate-700/50 rounded-xl transition-all duration-200 border border-slate-700/50 hover:border-slate-600"
+                >
+                  <Settings className="w-5 h-5 text-slate-400 group-hover:text-white group-hover:rotate-90 transition-all duration-300" />
+                </button>
+                
+                <div className="flex items-center space-x-3 bg-slate-800/40 backdrop-blur-sm border border-slate-700/40 rounded-xl px-4 py-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">{user?.email?.[0]?.toUpperCase()}</span>
+                  </div>
+                  <div className="hidden sm:block">
+                    <div className="text-sm font-medium text-slate-200">{user?.email}</div>
+                    <div className="text-xs text-slate-400">Premium User</div>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      await signOut();
+                      navigate('/');
+                    }}
+                    className="text-slate-400 hover:text-red-400 transition-colors duration-200 p-1"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Premium Mobile Navigation */}
+            <div className="md:hidden border-t border-slate-700/30">
+              <div className="flex space-x-1 py-3">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className={`flex-1 flex items-center justify-center space-x-2 px-3 py-3 rounded-xl transition-all duration-300 ${
+                    location.pathname === '/dashboard' 
+                      ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg' 
+                      : 'text-slate-400 hover:bg-slate-800/50'
+                  }`}
+                >
+                  <Home className="w-5 h-5" />
+                  <span className="text-sm font-semibold">Dashboard</span>
+                </button>
+                
+                <button
+                  onClick={() => navigate('/dashboard/playground')}
+                  className={`flex-1 flex items-center justify-center space-x-2 px-3 py-3 rounded-xl transition-all duration-300 ${
+                    location.pathname === '/dashboard/playground' 
+                      ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg' 
+                      : 'text-slate-400 hover:bg-slate-800/50'
+                  }`}
+                >
+                  <Bot className="w-5 h-5" />
+                  <span className="text-sm font-semibold">AI</span>
+                </button>
+
+                <button
+                  onClick={() => navigate('/dashboard/mcp-servers')}
+                  className={`flex-1 flex items-center justify-center space-x-2 px-3 py-3 rounded-xl transition-all duration-300 ${
+                    location.pathname === '/dashboard/mcp-servers' 
+                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg' 
+                      : 'text-slate-400 hover:bg-slate-800/50'
+                  }`}
+                >
+                  <Server className="w-5 h-5" />
+                  <span className="text-sm font-semibold">MCP</span>
                 </button>
               </div>
             </div>
           </div>
+        </header>
 
-          {/* Premium Mobile Navigation */}
-          <div className="md:hidden border-t border-slate-700/30">
-            <div className="flex space-x-1 py-3">
-              <button
-                onClick={() => setCurrentView('dashboard')}
-                className={`flex-1 flex items-center justify-center space-x-2 px-3 py-3 rounded-xl transition-all duration-300 ${
-                  currentView === 'dashboard' 
-                    ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-lg' 
-                    : 'text-slate-400 hover:bg-slate-800/50'
-                }`}
-              >
-                <Database className="w-5 h-5" />
-                <span className="text-sm font-semibold">Workflows</span>
-              </button>
-              
-              <button
-                onClick={() => setCurrentView('playground')}
-                className={`flex-1 flex items-center justify-center space-x-2 px-3 py-3 rounded-xl transition-all duration-300 ${
-                  currentView === 'playground' 
-                    ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white shadow-lg' 
-                    : 'text-slate-400 hover:bg-slate-800/50'
-                }`}
-              >
-                <Sparkles className="w-5 h-5" />
-                <span className="text-sm font-semibold">AI</span>
-              </button>
-
-              <button
-                onClick={() => setCurrentView('mcp-servers')}
-                className={`flex-1 flex items-center justify-center space-x-2 px-3 py-3 rounded-xl transition-all duration-300 ${
-                  currentView === 'mcp-servers' 
-                    ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg' 
-                    : 'text-slate-400 hover:bg-slate-800/50'
-                }`}
-              >
-                <Server className="w-5 h-5" />
-                <span className="text-sm font-semibold">MCP</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Render Content */}
-      {renderMainContent()}
-      
-    </DashboardWrapper>
+        {/* Render Content with Routes */}
+        <Routes>
+          <Route path="/" element={renderMainContent()} />
+          <Route path="/playground" element={
+            <CleanWrapper>
+              <AIPlayground onBack={() => navigate('/dashboard')} />
+            </CleanWrapper>
+          } />
+          <Route path="/mcp-servers" element={
+            <CleanWrapper>
+              <MCPServerManager onBack={() => navigate('/dashboard')} />
+            </CleanWrapper>
+          } />
+        </Routes>
+        
+      </DashboardWrapper>
     </>
-
   );
 };
